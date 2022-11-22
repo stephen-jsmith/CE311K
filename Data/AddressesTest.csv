@@ -1,6 +1,6 @@
-Name,Address
-RLP,"305 E 23rd St Austin TX 78712"
-HRC,"300 W 21st St Austin TX 78712"
-CNS,"Will C.Hogg Bldg, 120 Inner Campus Drive, Austin, TX 78712"
-BUR,"2505 University Ave, Austin, TX 78712"
-CPE,"200 E Dean Keeton St, Austin, TX 78712"
+,Name,Address,Latitude,Longitude
+0,RLP,305 E 23rd St Austin TX 78712,30.28477,-97.73558
+1,HRC,300 W 21st St Austin TX 78712,30.28431,-97.7412
+2,CNS,"Will C.Hogg Bldg, 120 Inner Campus Drive, Austin, TX 78712",30.28608,-97.73834
+3,BUR,"2505 University Ave, Austin, TX 78712",30.28842,-97.73901
+4,CPE,"200 E Dean Keeton St, Austin, TX 78712",30.29021,-97.73614

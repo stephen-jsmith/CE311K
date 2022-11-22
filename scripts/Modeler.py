@@ -59,12 +59,12 @@ def generateDistanceMatrix(df:pd.DataFrame, key:str) -> np.ndarray:
     for index1, row1 in df.iterrows():
         distDict[index1] = []
         for index2, row2 in df.iterrows():
-            i += 1
             if index1 == index2:
                 # If location equals itself then give 0 for distance, no need to ping the API
                 distDict[index1].append(0)
 
             elif index1 != index2:
+                i += 1
                 # Ping Google's Destination API for route data
                 distDict[index1].append(RouteCaller(df.iloc[index1]['Address'], df.iloc[index2]['Address'], key))
     print(f'Successfully made {i} calls to the Google Maps Route API')
@@ -90,19 +90,20 @@ def validateCache(filename:str,df:pd.DataFrame,key:str=None) -> np.ndarray:
     :return distMatrix: Returns a distmatrix
     :rtype distMatrix: np.ndarray
     """
+    path = os.getcwd()
     # Define where the cache should be
     cache_filename = os.path.splitext(filename)[0] + ".npy"
     # Check for if the parent folder exists, if not make one
-    if not os.path.exists(os.path.join(os.path.dirname(__file__),"CachedDistances")):
-        os.mkdir(os.path.join(os.path.dirname(__file__),"CachedDistances"))
+    if not os.path.exists(os.path.join(os.getcwd(),"CachedDistances")):
+        os.mkdir(os.path.join(path,"CachedDistances"))
     # Check if the distance matrix doesn't exist, if so make one
-    if not os.path.exists(os.path.join(os.path.dirname(__file__),"CachedDistances",cache_filename)):
+    if not os.path.exists(os.path.join(path,"CachedDistances",cache_filename)):
         distMatrix = generateDistanceMatrix(df, key)
-        np.save(os.path.join(os.path.dirname(__file__),"CachedDistances",cache_filename),distMatrix)
+        np.save(os.path.join(path,"CachedDistances",cache_filename),distMatrix)
         return distMatrix
     # Since the matrix exists, just load it
     else:
-        distMatrix = np.load(os.path.join(os.path.dirname(__file__), "CachedDistances", cache_filename))
+        distMatrix = np.load(os.path.join(path, "CachedDistances", cache_filename))
         return distMatrix
 
 # -------------------------------------- Defining the Constraints -------------------------------------- #
@@ -154,13 +155,13 @@ def lpGenerator(distMatrix:np.ndarray, constraintMatrix:np.ndarray,filename:str)
     :arg filename: input filename that we will make the associated lp file for
     :type filename: str
     """
-    
+    path = os.getcwd()
     # Define where the LP file should be
     lp_filename = os.path.splitext(filename)[0] + ".lp"
     # Check for if the parent folder exists, if not make one
-    if not os.path.exists(os.path.join(os.path.dirname(__file__),"LPFiles")):
-        os.mkdir(os.path.join(os.path.dirname(__file__),"LPFiles"))
-    full_lp_filename = os.path.join(os.path.dirname(__file__),"LPFiles",lp_filename)
+    if not os.path.exists(os.path.join(path,"LPFiles")):
+        os.mkdir(os.path.join(path,"LPFiles"))
+    full_lp_filename = os.path.join(path,"LPFiles",lp_filename)
     # Delete old lp file of same name
     if os.path.exists(full_lp_filename):
         os.remove(full_lp_filename)
