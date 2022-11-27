@@ -177,6 +177,9 @@ def lpGenerator(distMatrix:np.ndarray, constraintMatrix:np.ndarray,filename:str)
         vars_dict[i] = {}
         for j in range(NumElements):
             vars_dict[i][j] = f'i{i}j{j}'
+    subtour_total = 0
+    for i in range(NumElements):
+        subtour_total += i
     # -------------- Objective Writing -------------- #
     costs = []
     for i in vars_dict.keys():
@@ -223,6 +226,12 @@ def lpGenerator(distMatrix:np.ndarray, constraintMatrix:np.ndarray,filename:str)
                 else:
                     # Rest of the subtour elimination clause
                     subtours.append(f'{vars_dict[i][j]} = 1 -> {subtour_vars[i]} - {subtour_vars[j]} >= 1')
+    subtour_final = []
+    for i in subtour_vars.keys():
+        subtour_final.append(i)
+        subtour_final.append(' + ')
+    subtour_final.pop()
+    subtour_final.append(f'= {subtour_total}')
 
     # Write the LP file
     with open(full_lp_filename, 'x') as lp:
@@ -240,6 +249,8 @@ def lpGenerator(distMatrix:np.ndarray, constraintMatrix:np.ndarray,filename:str)
         for i in subtours:
             lp.write(f'\nGC{count}: {i}')
             count += 1
+        for i in subtour_final:
+            lp.write(f'{i}')
         # Define Subtour Variable Bounds
         lp.write('\nbounds \n')
         for i in subtour_vars.keys():

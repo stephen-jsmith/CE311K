@@ -7,15 +7,8 @@ import json
 import os
 import plotly as plt
 import plotly.graph_objects as go
-from matplotlib.pyplot import get_cmap
 import shutil
 
-OPACITY = 1
-PERCENT_DEVIATION = 1
-# Lower Number indicates higher density of points. Use an integer greater than 0.
-POINT_DENSITY = 1
-# Lower number indicates more zoomed out
-ZOOM = 10
 filename = 'AddressesFull'
 MAP_PATH = MAP_PATH = os.path.join(os.getcwd(), "Maps")
 
@@ -23,17 +16,6 @@ with open(os.path.join(os.getcwd(), 'Keys.json')) as f:
     keys = json.load(f)
 TomTomKey = keys['TomTom']
 MapBoxKey = keys['MapBox']
-
-
-def APIMANAGER(js: str) -> pd.DataFrame:
-    jsDump = json.dumps(js)
-    jsLoad = json.loads(jsDump)
-    points = jsLoad['routes'][0]['legs'][0]['points']
-    coords = []
-    for item in points:
-        coords.append([float(item['longitude']), float(item['latitude'])])
-    loc_df = pd.DataFrame(coords, columns=['Longitude', 'Latitude'])
-    return loc_df
 
 # -------------------------------------- Interpreting the Solution -------------------------------------- #
 
@@ -99,7 +81,7 @@ def solInterpreter(sol: dict, distMatrix: np.ndarray, filename: str) -> dict:
     for loc in routes.keys():
         if stop != loc:
             print(
-                f'Route contains {df.iloc[routes[stop], 0]} -> {df.iloc[routes[loc], 0]}')
+                f'Route contains {df.iloc[routes[stop], 1]} -> {df.iloc[routes[loc], 1]}')
             stop = loc
         elif i != 0:
             print(f'Possible circular route: {loc} -> {stop}, at index {i}')
@@ -111,10 +93,21 @@ def solInterpreter(sol: dict, distMatrix: np.ndarray, filename: str) -> dict:
     else:
         print(
             f'Route is not circular, as there are {i} stops and {NumElements} locations')
+    print(routes)
     return routes
 
 
 # -------------------------------------- Graphing the Solution -------------------------------------- #
+
+def APIMANAGER(js: str) -> pd.DataFrame:
+    jsDump = json.dumps(js)
+    jsLoad = json.loads(jsDump)
+    points = jsLoad['routes'][0]['legs'][0]['points']
+    coords = []
+    for item in points:
+        coords.append([float(item['longitude']), float(item['latitude'])])
+    loc_df = pd.DataFrame(coords, columns=['Longitude', 'Latitude'])
+    return loc_df
 
 def routeGenerator(startLat: float, startLon: float, endLat: float, endLon: float, apiKey: str) -> pd.DataFrame:
     tomtomURL = f'https://api.tomtom.com/routing/1/calculateRoute/{startLat},{startLon}:{endLat},{endLon}/json?maxAlternatives=0&routeType=shortest&travelMode=bicycle&key={apiKey}'
@@ -155,24 +148,27 @@ def GenerateMapSolutions(sol: dict, dataframe: pd.DataFrame, apiKey: str) -> dic
     return retVal
 
 
-def make_map(pathingList: dict, locations: pd.DataFrame, mapboxKey: str) -> None:
+def make_map(pathingList:dict, locations:pd.DataFrame, mapboxKey:str, sol:dict) -> None:
     fig = go.Figure(go.Scattergeo())
     # Plot all locations
     lat = locations['Latitude'].values.tolist()
-    lon = locations["Longitude"].values.tolist()
+    lon = locations['Longitude'].values.tolist()
     fig.add_trace(go.Scattermapbox(
         lat=lat,
-        lon=lon
+        lon=lon,
+        name='Locations'
     ))
     # Plot all routes
-    
     for i in pathingList.keys():
+        start = locations.iloc[i]['Name']
+        end = locations.iloc[sol[i]]['Name']
         fig.add_trace(go.Scattermapbox(
             mode='lines',
             lat=pathingList[i]['Latitude'].values.tolist(),
             lon=pathingList[i]["Longitude"].values.tolist(),
-                )
+            name = f'{start} -> {end}'
             )
+        )
 
     # Using Mapbox
     fig.update_layout(mapbox_style="open-street-map")
@@ -201,7 +197,7 @@ def ShowMapSolutions(sol: dict, dataframe: pd.DataFrame, TomTomKey: str, MapBoxK
         shutil.rmtree(MAP_PATH)
     os.mkdir(MAP_PATH)
     GeneratedSolution = GenerateMapSolutions(sol, dataframe, TomTomKey)
-    make_map(GeneratedSolution, dataframe, MapBoxKey)
+    make_map(GeneratedSolution, dataframe, MapBoxKey, sol)
 
 
 if __name__ == "__main__":

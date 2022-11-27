@@ -3,7 +3,7 @@ from scripts.Sol import *
 
 FILENAME = "AddressesFull"
 
-# Open API Key
+# Open API Keys
 with open("Keys.json", "r") as data:
     Keys = json.load(data)
 
@@ -36,12 +36,16 @@ def interpret(filename:str) -> None:
     :arg filename: Generic name of the input data file
     :type filename: str
     """
-    # Load Dist Matrix
+    # Load Dist Matrix, Address data
     distMatrix = np.load(os.path.join("CachedDistances", filename + ".npy"))
+    df = pd.read_csv(os.path.join(os.getcwd(), 'Data', filename+'.csv'))
     # Pull solution from .sol file
     solution = solParser(distMatrix, filename)
     # Interpret that solution
-    solInterpreter(solution, distMatrix, filename)
+    sol = solInterpreter(solution, distMatrix, filename)
+    # Graph it
+    ShowMapSolutions(sol, df, TomTomKey, MapBoxKey)
+
 
 # -------------------------------------------------- Define Main ---------------------------------------------------- #
 
